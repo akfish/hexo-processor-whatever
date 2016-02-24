@@ -10,7 +10,7 @@ Process custom source `source/_whatevers` into `hexo.locals.whatevers`.
 npm install --save hexo-processor-whatever
 ```
 
-### 2. Define a model:
+### 2. (Optional) Define a model:
 
 ```js
 // model.es6
@@ -24,15 +24,25 @@ export default function(hexo) {
 ```
 See also:
 - [warehouse](https://github.com/tommy351/warehouse)
-- [Hexo built in models](https://github.com/hexojs/hexo/tree/master/lib/models)
 
 ### 3. Register source type in some scripts (another extension or theme scripts):
+
+* Use custom model:
 
 ```js
 import {Project} from "./model";
 
 hexo.whatever.register("project", Project);
 ```
+
+* Use Hexo built-in model (identified by name string):
+
+```js
+hexo.whatever.register("myPost", "Post");
+```
+
+See also:
+- [Hexo built in models](https://github.com/hexojs/hexo/tree/master/lib/models)
 
 Registering a model with name `"foo"` does the following:
 1. Hexo will process sources in `source/_foos`
