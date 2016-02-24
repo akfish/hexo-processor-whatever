@@ -14,7 +14,6 @@ module.exports =
       dst = path.join(base_dir, relative_dst)
       fs.copyDir(src, dst)
 
-
     return {
       base_dir,
       hexo,

@@ -1,7 +1,7 @@
 util = require('./util')
 Registery = require('../src/registery')
 {MakeFoo} = require('./mock')
-_ = require('underscore')
+_ = require('lodash')
 models = require('hexo/lib/models')
 
 describe "Registery", ->
