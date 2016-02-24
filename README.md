@@ -1,4 +1,4 @@
-# hexo-processor-whatever
+# hexo-processor-whatever [![Build Status](https://travis-ci.org/akfish/hexo-processor-whatever.svg?branch=master)](https://travis-ci.org/akfish/hexo-processor-whatever)
 
 Process custom source `source/_whatevers` into `hexo.locals.whatevers`.
 
