@@ -21,7 +21,7 @@ describe "Processor", ->
 
   before ->
     hexo.whatever.register("foo", Foo)
-    h.deployAssets("./test/asset/_foo", "source/_foos")
+    h.deployAssets("./test/asset/_foos", "source/_foos")
       .then(h.setup)
       .then(-> hexo.call('generate', {}))
   after h.teardown

@@ -1,10 +1,11 @@
 {
   "name": "hexo-processor-whatever",
-  "version": "1.0.0",
-  "description": "Process files in `source/_whatever` to `hexo.locals.whatevers`",
+  "version": "0.1.0",
+  "description": "Process custom source `source/_whatevers` into `hexo.locals.whatevers`",
   "main": "lib/index.js",
   "scripts": {
-    "prepublish": "gulp clean && gulp es6"
+    "prepublish": "gulp clean && gulp es6",
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",

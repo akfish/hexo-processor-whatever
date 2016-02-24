@@ -4,7 +4,7 @@ whatever = require('../src')
 module.exports =
   initHexo: (name) ->
     base_dir = path.join(__dirname, name)
-    hexo = new Hexo(base_dir)
+    hexo = new Hexo(base_dir, silent: true)
     whatever(hexo)
     setup = ->
       fs.mkdirs(base_dir).then(-> hexo.init())
