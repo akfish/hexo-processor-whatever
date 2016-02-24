@@ -1,5 +1,5 @@
 path = require('path')
-whatever = require('../src')
+whatever = require('../src/main')
 
 module.exports =
   initHexo: (name) ->
