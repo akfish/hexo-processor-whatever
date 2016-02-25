@@ -1,12 +1,35 @@
 import Processor from "./processor";
+import _ from "lodash";
 
 const {Schema} = require('warehouse');
 const models = require('hexo/lib/models');
 
 const DEFAULT_OPTS = {
-  generateIndex: true,
-  generatePost: true,
-  indexLayout: [],
+  processor: {
+    permalink: ":source/:title/",
+    item_name: ":title",
+    preserved_keys: [
+      'title',
+      'year',
+      'month',
+      'day',
+      'i_month',
+      'i_day'
+    ]
+  },
+  generator: {
+    index: {
+      enabled: true,
+      permalink: ":source/index.html",
+      layout: ['archive', 'index'],
+      pagination: true,
+      perPage: 10
+    },
+    item: {
+      enabled: true,
+      layout: ['post']
+    }
+  }
 }
 
 export default class Registery {
@@ -16,6 +39,8 @@ export default class Registery {
   }
   register(name, model, opts) {
     let {hexo} = this;
+
+    opts = _.defaults({}, opts, DEFAULT_OPTS);
     // Check duplications
     if (name in this._processors) {
       throw new RangeError(`[Whatever] Duplicate name '${name}'`);
@@ -34,7 +59,7 @@ export default class Registery {
     if (!(typeof model === 'object' && model.constructor && model.constructor.name === 'Schema')) {
       throw new TypeError(`[Whatever] Model for '${name}' is not an instance of wharehouse schema`);
     }
-    let processor = this._processors[name] = new Processor(hexo, name, model, opts);
+    let processor = this._processors[name] = new Processor(hexo, name, model, opts.processor);
     processor.register();
   }
   get(name) {

@@ -1,23 +1,14 @@
 util = require('./util')
-Processor = {Name} = require('../src/processor')
 {MakeFoo} = require('./mock')
 Model = require('warehouse/lib/model')
-
-describe "Name", ->
-  it "should transform names correctly", ->
-    fooName = new Name("FoO")
-    expect(fooName).to.have.property('normalized', "foO")
-    expect(fooName).to.have.property('titled'    , "FoO")
-    expect(fooName).to.have.property('plural'    , "foOs")
-    expect(fooName).to.have.property('dirPath'   , "_foOs/")
 
 describe "Processor", ->
   h = {hexo} = util.initHexo('test_registery')
   Foo = MakeFoo()
 
-  hexo.extend.filter.register 'process_foo', (data, opts) ->
-    data.filtered = true
-    data
+  hexo.extend.filter.register 'after_process_foo', (data, opts) ->
+    delta =
+      filtered: true
 
   before ->
     hexo.whatever.register("foo", Foo)
@@ -44,7 +35,9 @@ describe "Processor", ->
     foos = foos.toArray()
     expect(foos.length).to.equal(1)
 
-  it "should execute 'process_foo' filter", ->
-    hexo.locals.invalidate()
-    {foos} = hexo.locals.toObject()
-    foos.forEach (f) -> expect(f.filtered).to.be.true
+  describe "'after_process_foo' filter", ->
+    it "should extend data with delta", ->
+      hexo.locals.invalidate()
+      {foos} = hexo.locals.toObject()
+      foos.forEach (f) -> expect(f.filtered).to.be.true
+    it "should not mutate data directly"

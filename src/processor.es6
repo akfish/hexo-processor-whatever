@@ -1,24 +1,10 @@
 import Promise from 'bluebird';
+import Name from './name';
 
 const _ = require('lodash');
 const yfm = require('hexo-front-matter');
 const common = require('hexo/lib/plugins/processor/common');
-const {Pattern} = require('hexo-util');
-
-export class Name {
-  constructor(name) {
-    let first = name[0],
-      rest = name.substr(1);
-    this._normalized = first.toLowerCase() + rest;
-    this._titled = first.toUpperCase() + rest;
-    this._plural = this._normalized + "s";
-    this._dirPath = `_${this._plural}/`;
-  }
-  get normalized() { return this._normalized; }
-  get titled() { return this._titled; }
-  get plural() { return this._plural; }
-  get dirPath() { return this._dirPath; }
-}
+const {Pattern, Permalink, slugize} = require('hexo-util');
 
 export default class Processor {
   constructor(hexo, name, model, opts = {}) {
@@ -26,13 +12,79 @@ export default class Processor {
     this.name = new Name(name);
     this.model = model;
     this.opts = opts;
+
+    _.bindAll(this, [
+      "_buildData",
+      "_extendData",
+      "_updateDatabase"
+    ]);
+  }
+  _parseFileInfo(file, { item_name }) {
+    let { path: fullPath, params } = file,
+      { path: filePath, published }  = params;
+    return {
+      source: fullPath,
+      published
+    };
+  }
+  _buildData(info, stats, content) {
+    // TODO: generate path
+    let {hexo, name, opts} = this,
+      { permalink, preserved_keys } = opts,
+      {timezone} = hexo.config,
+      data = yfm(content);
+    data.raw = content;
+    data.slug = info.title;
+
+    if (!data.hasOwnProperty('published')) data.published = info.published;
+    data = _.extend(data, _.omit(info, preserved_keys, 'published'));
+
+    if (data.date){
+      data.date = common.toDate(data.date);
+    } else if (info && info.year && (info.month || info.i_month) && (info.day || info.i_day)){
+      data.date = new Date(
+        info.year,
+        parseInt(info.month || info.i_month, 10) - 1,
+        parseInt(info.day || info.i_day, 10)
+      );
+    }
+
+    if (data.date) {
+      if (timezone) data.date = common.timezone(data.date, timezone);
+    } else {
+      data.date = stats.birthtime;
+    }
+
+    data.updated = common.toDate(data.updated);
+
+    if (data.updated) {
+      if (timezone) data.updated = common.timezone(data.updated, timezone);
+    } else {
+      data.updated = stats.mtime;
+    }
+
+    return data;
+  }
+  _extendData(data) {
+    let { hexo, name, opts } = this;
+    // Filters should not mutate data directly
+    // instead they should only return changed fields
+    // TODO: add test specs
+    return hexo.execFilter(`after_process_${name.normalized}`, _.cloneDeep(data), { args: [{opts}] })
+      .then((delta) => _.extend(data, delta));
+  }
+  _updateDatabase(data) {
+    let {hexo, name} = this,
+      Model = hexo.model(name.titled),
+      doc = Model.findOne({source: data.source});
+    if (doc) {
+      return doc.replace(data);
+    }
+    return Model.insert(data);
   }
   _process(file) {
     if (!file.params.renderable) return;
-    let {hexo, name, model, opts} = this,
-      {config} = hexo,
-      {path} = file.params,
-      {timezone} = config,
+    let {hexo, name, opts} = this,
       Model = hexo.model(name.titled),
       doc = Model.findOne({source: file.path});
 
@@ -41,44 +93,13 @@ export default class Processor {
     }
 
     return Promise.all([
+        this._parseFileInfo(file, opts),
         file.stat(),
         file.read()
-      ]).spread((stats, content) => {
-        let data = yfm(content);
-        data.source = file.path;
-        data.raw = content;
-
-        if (data.date) {
-          data.date = common.toDate(data.date);
-        }
-
-        if (data.date) {
-          if (timezone) data.date = common.timezone(data.date, timezone);
-        } else {
-          data.date = stats.birthtime;
-        }
-
-        data.updated = common.toDate(data.updated);
-
-
-        if (data.updated) {
-          if (timezone) data.updated = common.timezone(data.updated, timezone);
-        } else {
-          data.updated = stats.mtime;
-        }
-
-        return data;
-      }).then((data) => {
-        return hexo.execFilter(`process_${name.normalized}`, data, { args: [{opts}] });
-      }).then((data) => {
-        let doc = Model.findOne({source: file.path});
-
-        if (doc) {
-          return doc.replace(data);
-        }
-
-        return Model.insert(data);
-      });
+      ])
+      .spread(this._buildData)
+      .then(this._extendData)
+      .then(this._updateDatabase);
   }
   get pattern() {
     if (!this._pattern) {
