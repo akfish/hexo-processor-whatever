@@ -1,31 +1,55 @@
 import Promise from 'bluebird';
 import Name from './name';
+import Permalink from './permalink';
+import path from 'path';
 
 const _ = require('lodash');
 const yfm = require('hexo-front-matter');
 const common = require('hexo/lib/plugins/processor/common');
-const {Pattern, Permalink, slugize} = require('hexo-util');
+const {Pattern, slugize} = require('hexo-util');
 
 export default class Processor {
-  constructor(hexo, name, model, opts = {}) {
+  constructor(hexo, name, opts = {}) {
     this.hexo = hexo;
     this.name = new Name(name);
-    this.model = model;
+    // this.model = model;
     this.opts = opts;
 
     _.bindAll(this, [
       "_buildData",
       "_extendData",
-      "_updateDatabase"
+      "_updateDatabase",
+      "_linkMeta"
     ]);
   }
   _parseFileInfo(file, { item_name }) {
     let { path: fullPath, params } = file,
       { path: filePath, published }  = params;
-    return {
-      source: fullPath,
-      published
-    };
+
+    item_name = item_name.substring(0, item_name.length - path.extname(item_name).length);
+    filePath = filePath.substring(0, filePath.length - path.extname(filePath).length);
+
+
+    let permalink = Permalink.get(item_name, {
+      segments: {
+        year: /(\d{4})/,
+        month: /(\d{2})/,
+        day: /(\d{2})/,
+        i_month: /(\d{1,2})/,
+        i_day: /(\d{1,2})/
+      }
+    }),
+      data = permalink.parse(filePath)
+    return _.defaults(
+      {
+        source: fullPath,
+        published
+      },
+      data,
+      {
+        title: slugize(filePath)
+      }
+    );
   }
   _buildData(info, stats, content) {
     // TODO: generate path
@@ -63,6 +87,32 @@ export default class Processor {
       data.updated = stats.mtime;
     }
 
+    let categories = data.categories || [],
+      tags = data.tags || [];
+
+    if (!Array.isArray(categories)) categories = [categories];
+    if (!Array.isArray(tags)) tags = [tags];
+
+    data.categories = categories;
+    data.tags = tags;
+
+    if (data.photo && !data.photos){
+      data.photos = data.photo;
+      delete data.photo;
+    }
+
+    if (data.photos && !Array.isArray(data.photos)){
+      data.photos = [data.photos];
+    }
+
+    if (data.link && !data.title){
+      data.title = data.link.replace(/^https?:\/\/|\/$/g, '');
+    }
+
+    if (data.permalink){
+      data.slug = data.permalink;
+      delete data.permalink;
+    }
     return data;
   }
   _extendData(data) {
@@ -77,10 +127,14 @@ export default class Processor {
     let {hexo, name} = this,
       Model = hexo.model(name.titled),
       doc = Model.findOne({source: data.source});
-    if (doc) {
-      return doc.replace(data);
-    }
-    return Model.insert(data);
+    let defered = doc ? doc.replace(data) : Model.insert(data);
+    return [defered, data];
+  }
+  _linkMeta(doc, data) {
+    let { categories, tags } = data;
+    doc.setCategories(categories);
+    doc.setTags(tags);
+    return doc;
   }
   _process(file) {
     if (!file.params.renderable) return;
@@ -99,7 +153,8 @@ export default class Processor {
       ])
       .spread(this._buildData)
       .then(this._extendData)
-      .then(this._updateDatabase);
+      .then(this._updateDatabase)
+      .spread(this._linkMeta);
   }
   get pattern() {
     if (!this._pattern) {

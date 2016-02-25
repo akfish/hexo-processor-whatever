@@ -46,10 +46,11 @@ See also:
 
 Registering a model with name `"foo"` does the following:
 1. Hexo will process sources in `source/_foos`
-2. After each source is processed, filter `process_foo` will be executed for more custom processing
+2. After each source is processed, filter `after_process_foo` will be executed for more custom processing
 3. All processed data will be available in `hexo.locals.foos`
+4. When accessing `foo.path`, filter `foo_permalink` will be executed to determine the permalink.
 
-### 4. (Optional) register to `process_project` filter to do some custom processing:
+### 4. (Optional) register to `after_process_project` filter to do some custom processing:
 
 ```js
 hexo.extend.filter.register('process_project', (data, opts) => {

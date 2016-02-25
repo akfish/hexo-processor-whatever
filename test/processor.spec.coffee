@@ -1,6 +1,5 @@
 util = require('./util')
 {MakeFoo} = require('./mock')
-Model = require('warehouse/lib/model')
 
 describe "Processor", ->
   h = {hexo} = util.initHexo('test_registery')
@@ -41,3 +40,7 @@ describe "Processor", ->
       {foos} = hexo.locals.toObject()
       foos.forEach (f) -> expect(f.filtered).to.be.true
     it "should not mutate data directly"
+
+  describe "'foo_permalink' filter", ->
+    it "should have default implementation"
+    it "should override 'post_permalink' filter if model is Post"
