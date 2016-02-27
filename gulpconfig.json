@@ -45,5 +45,30 @@
       "force": false,
       "dryRun": false
     }
+  },
+  "watch:default": {
+    "taskName": "watch",
+    "opts": {
+      "watchEntries": [
+        {
+          "targets": [
+            "./src/**/*.*",
+            "./test/**/*.*"
+          ],
+          "actions": [
+            "test"
+          ]
+        }
+      ]
+    }
+  },
+  "cli:default": {
+    "opts": {
+      "mapping": {
+        "mocha:default": {
+          "opts.grep": "only"
+        }
+      }
+    }
   }
 }

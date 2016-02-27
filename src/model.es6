@@ -1,3 +1,5 @@
+import Promise from "bluebird";
+import _ from "lodash";
 import Name from "./name";
 const models = require('hexo/lib/models');
 
@@ -38,10 +40,14 @@ export default class ModelExtender {
     let { hexo: ctx, name, model } = this;
 
     // item.path
-    model.virtual('path').get(function(){
+    model.virtual('path').get(() => {
       var path = ctx.execFilterSync(`${name.normalized}_permalink`, this, {context: ctx});
       return typeof path === 'string' ? path : '';
     });
+
+    // remove tag & category reference before remove
+    model.pre('remove', ({_id: post_id}) => ctx.model('PostCategory').remove({post_id}));
+    model.pre('remove', ({_id: post_id}) => ctx.model('PostTag').remove({post_id}));
 
     let Post = models.Post(ctx);
     // Copy needed virtual paths
@@ -62,7 +68,6 @@ export default class ModelExtender {
       let fn = methods[name];
       model.method(name, fn);
     })
-
     this.model = model;
   }
 }

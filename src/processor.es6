@@ -29,7 +29,6 @@ export default class Processor {
     item_name = item_name.substring(0, item_name.length - path.extname(item_name).length);
     filePath = filePath.substring(0, filePath.length - path.extname(filePath).length);
 
-
     let permalink = Permalink.get(item_name, {
       segments: {
         year: /(\d{4})/,
@@ -39,7 +38,8 @@ export default class Processor {
         i_day: /(\d{1,2})/
       }
     }),
-      data = permalink.parse(filePath)
+      data = permalink.parse(filePath);
+
     return _.defaults(
       {
         source: fullPath,
@@ -52,7 +52,6 @@ export default class Processor {
     );
   }
   _buildData(info, stats, content) {
-    // TODO: generate path
     let {hexo, name, opts} = this,
       { permalink, preserved_keys } = opts,
       {timezone} = hexo.config,
@@ -87,6 +86,16 @@ export default class Processor {
       data.updated = stats.mtime;
     }
 
+    if (data.category && !data.categories) {
+      data.categories = data.category;
+      delete data.category;
+    }
+
+    if (data.tag && !data.tags) {
+      data.tags = data.tag;
+      delete data.tag;
+    }
+
     let categories = data.categories || [],
       tags = data.tags || [];
 
@@ -113,6 +122,7 @@ export default class Processor {
       data.slug = data.permalink;
       delete data.permalink;
     }
+
     return data;
   }
   _extendData(data) {
@@ -127,17 +137,18 @@ export default class Processor {
     let {hexo, name} = this,
       Model = hexo.model(name.titled),
       doc = Model.findOne({source: data.source});
+
     let defered = doc ? doc.replace(data) : Model.insert(data);
     return [defered, data];
   }
   _linkMeta(doc, data) {
     let { categories, tags } = data;
-    doc.setCategories(categories);
-    doc.setTags(tags);
-    return doc;
+    return Promise.all([
+      doc.setCategories(categories),
+      doc.setTags(tags)
+    ]);
   }
   _process(file) {
-    if (!file.params.renderable) return;
     let {hexo, name, opts} = this,
       Model = hexo.model(name.titled),
       doc = Model.findOne({source: file.path});
@@ -145,6 +156,8 @@ export default class Processor {
     if (file.type === 'delete') {
       return typeof doc === 'object' ? doc.remove() : null;
     }
+    let renderedBefore = file.type === 'update' && typeof doc === 'object';
+    if (!file.params.renderable && !renderedBefore) return;
 
     return Promise.all([
         this._parseFileInfo(file, opts),

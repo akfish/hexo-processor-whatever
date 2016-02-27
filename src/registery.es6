@@ -50,7 +50,7 @@ export default class Registery {
     let processor = this._processors[name] = new Processor(hexo, name, opts.processor);
     processor.register();
   }
-  get(name) {
+  getProcessor(name) {
     return this._processors[name];
   }
 }
