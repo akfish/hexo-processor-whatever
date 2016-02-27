@@ -7,12 +7,12 @@ dateFormat = 'YYYY-MM-DD HH:mm:ss'
 
 describe "Processor", ->
   h = {hexo, createFileForTest, newFile} = util.initHexo('test_processor')
-  Foo = MakeFoo()
 
   createFileForFooTest = createFileForTest.bind(null, "foo")
   newFooFile = newFile.bind(null, "foo")
   before ->
-    hexo.whatever.register("foo", Foo)
+    hexo.whatever.register("foo", MakeFoo())
+    hexo.whatever.register("bar", "Post")
     h.deployAssets("./test/asset/_foos", "source/_foos")
       .then(h.setup)
       .then(-> hexo.call('generate', {}))
@@ -52,10 +52,44 @@ describe "Processor", ->
       {foos} = hexo.locals.toObject()
       foos.forEach (f) -> expect(f.mutate_directly).to.be.undefined
 
-
   describe "'foo_permalink' Filter", ->
-    it "should return permalink via foo.path"
-    it "should override 'post_permalink' filter if model is Post"
+    it "should return permalink via foo.path", ->
+      doc = null
+      hexo.model('Foo').insert(slug: "foo")
+        .tap (foo) -> doc = foo
+        .then (foo) ->
+          foo.path.should.eql('foos/foo/')
+        .finally -> doc.remove()
+
+    it "should support custom permalink pattern", ->
+      doc = null
+      filter = hexo.whatever.getFilter("foo")
+      permalink_pattern = filter.opts.item_permalink
+      filter.opts.item_permalink = ":source/:year/:month/:day/:title/"
+      hexo.model('Foo').insert(slug: "foo", date: new Date(1456605039835))
+        .tap (foo) -> doc = foo
+        .then (foo) ->
+          foo.path.should.eql('foos/2016/02/28/foo/')
+        .finally ->
+          filter.opts.item_permalink = permalink_pattern
+          doc.remove()
+
+
+
+
+    it.skip "should override 'post_permalink' filter if model is Post", ->
+      doc = null
+      hexo.model('Bar').insert({source: "foo", slug: "foo"}, (err, doc) ->
+        console.error(err)
+        console.log(doc)
+      )
+        # .tap (bar) -> doc = bar
+        # .then (bar) ->
+        #   console.log('-_-')
+        #   console.log(bar)
+        #   bar.path.should.eql('bar/foo/')
+        # .catch (e) -> fail(e)
+        # .finally -> doc.remove()
 
   describe "File Lifecycle", ->
     it "create", ->

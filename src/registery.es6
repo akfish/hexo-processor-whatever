@@ -1,10 +1,10 @@
-import Processor from "./processor";
 import _ from "lodash";
+import Processor from "./processor";
 import ModelExtender from "./model";
+import Filter from "./filter"
 
 const DEFAULT_OPTS = {
   processor: {
-    permalink: ":source/:title/",
     item_name: ":title",
     preserved_keys: [
       'title',
@@ -27,6 +27,9 @@ const DEFAULT_OPTS = {
       enabled: true,
       layout: ['post']
     }
+  },
+  filter: {
+    item_permalink: ":source/:title/",
   }
 }
 
@@ -34,6 +37,7 @@ export default class Registery {
   constructor(hexo) {
     this.hexo = hexo;
     this._processors = {};
+    this._filters = {};
   }
   register(name, model, opts) {
     let {hexo} = this;
@@ -49,9 +53,15 @@ export default class Registery {
 
     let processor = this._processors[name] = new Processor(hexo, name, opts.processor);
     processor.register();
+
+    let filter = this._filters[name] = new Filter(hexo, name, opts.filter);
+    filter.register();
   }
   getProcessor(name) {
     return this._processors[name];
+  }
+  getFilter(name) {
+    return this._filters[name];
   }
 }
 

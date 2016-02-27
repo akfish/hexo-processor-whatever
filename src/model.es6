@@ -20,6 +20,7 @@ export default class ModelExtender {
 
   _validate() {
     let { hexo, name, model } = this;
+    this._isHexoModel = false;
     // Built-in model
     if (typeof model === 'string') {
       let modelMaker = models[model];
@@ -27,6 +28,7 @@ export default class ModelExtender {
         throw new TypeError(`[Whatever] '${model}' is not a Hexo built-in model`)
       }
       model = modelMaker(hexo);
+      this._isHexoModel = true;
     }
     // Check model type
     // Note: model instance of Schema will not do since Schema could come from
@@ -40,10 +42,13 @@ export default class ModelExtender {
     let { hexo: ctx, name, model } = this;
 
     // item.path
-    model.virtual('path').get(() => {
-      var path = ctx.execFilterSync(`${name.normalized}_permalink`, this, {context: ctx});
+    model.virtual('path').get(function() {
+      var path = ctx.execFilterSync(`${name.normalized}_permalink`, this);//, {context: ctx});
       return typeof path === 'string' ? path : '';
     });
+
+    // Do not override built-in model
+    if (this._isHexoModel) return;
 
     // remove tag & category reference before remove
     model.pre('remove', ({_id: post_id}) => ctx.model('PostCategory').remove({post_id}));
@@ -68,6 +73,5 @@ export default class ModelExtender {
       let fn = methods[name];
       model.method(name, fn);
     })
-    this.model = model;
   }
 }
