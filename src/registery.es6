@@ -1,7 +1,8 @@
 import _ from "lodash";
 import Processor from "./processor";
 import ModelExtender from "./model";
-import Filter from "./filter"
+import Filter from "./filter";
+import Generator from "./generator";
 
 const DEFAULT_OPTS = {
   processor: {
@@ -18,7 +19,7 @@ const DEFAULT_OPTS = {
   generator: {
     index: {
       enabled: true,
-      permalink: ":source/index.html",
+      permalink: ":source/",
       layout: ['archive', 'index'],
       pagination: true,
       perPage: 10
@@ -38,6 +39,7 @@ export default class Registery {
     this.hexo = hexo;
     this._processors = {};
     this._filters = {};
+    this._generators = {};
   }
   register(name, model, opts) {
     let {hexo} = this;
@@ -56,12 +58,18 @@ export default class Registery {
 
     let filter = this._filters[name] = new Filter(hexo, name, opts.filter);
     filter.register();
+
+    let generator = this._generators[name] = new Generator(hexo, name, opts.generator);
+    generator.register();
   }
   getProcessor(name) {
     return this._processors[name];
   }
   getFilter(name) {
     return this._filters[name];
+  }
+  getGenerator(name) {
+    return this._generators[name];
   }
 }
 

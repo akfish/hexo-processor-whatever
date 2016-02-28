@@ -5,7 +5,7 @@ Name = require('../src/name')
 module.exports =
   initHexo: (name) ->
     base_dir = path.join(__dirname, name)
-    hexo = new Hexo(base_dir, silent: false)
+    hexo = new Hexo(base_dir, silent: true)
     whatever(hexo)
     setup = ->
       fs.mkdirs(base_dir).then(-> hexo.init())
@@ -49,6 +49,10 @@ module.exports =
             fs.unlink(file.source)
           ])
 
+    locals = ->
+      hexo.locals.invalidate()
+      hexo.locals.toObject()
+
     return {
       base_dir,
       hexo,
@@ -56,5 +60,6 @@ module.exports =
       teardown,
       deployAssets,
       newFile,
-      createFileForTest
+      createFileForTest,
+      locals
     }
