@@ -1,8 +1,7 @@
 Promise = require('bluebird')
 util = require('./util')
 {MakeFoo} = require('./mock')
-moment = require("moment")
-
+moment = require('hexo/node_modules/moment')
 
 describe "Filter", ->
 
