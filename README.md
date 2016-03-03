@@ -1,4 +1,4 @@
-# hexo-processor-whatever [![Build Status](https://travis-ci.org/akfish/hexo-processor-whatever.svg?branch=master)](https://travis-ci.org/akfish/hexo-processor-whatever)
+# hexo-whatever [![Build Status](https://travis-ci.org/akfish/hexo-whatever.svg?branch=master)](https://travis-ci.org/akfish/hexo-whatever)
 
 Process custom source `source/_whatevers` into `hexo.locals.whatevers`.
 
@@ -7,7 +7,7 @@ Process custom source `source/_whatevers` into `hexo.locals.whatevers`.
 ### 1. Install:
 
 ```bash
-npm install --save hexo-processor-whatever
+npm install --save hexo-whatever
 ```
 
 ### 2. (Optional) Define a model:

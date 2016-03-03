@@ -1,5 +1,5 @@
 {
-  "name": "hexo-processor-whatever",
+  "name": "hexo-whatever",
   "version": "0.1.0",
   "description": "Process custom source `source/_whatevers` into `hexo.locals.whatevers`",
   "main": "lib/index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akfish/hexo-processor-whatever.git"
+    "url": "git+https://github.com/akfish/hexo-whatever.git"
   },
   "keywords": [
     "hexo",
@@ -18,9 +18,9 @@
   "author": "AKFish (http://catx.me)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/akfish/hexo-processor-whatever/issues"
+    "url": "https://github.com/akfish/hexo-whatever/issues"
   },
-  "homepage": "https://github.com/akfish/hexo-processor-whatever#readme",
+  "homepage": "https://github.com/akfish/hexo-whatever#readme",
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.1.2",
     "babel-preset-es2015": "^6.5.0",
