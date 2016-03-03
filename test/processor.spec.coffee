@@ -360,7 +360,8 @@ describe "Processor", ->
 
           expect(foo.category).to.be.undefined
           foo.categories.map((c) -> c.name)
-            .should.eql(['foo', 'bar'])
+            .sort()
+            .should.eql(['bar', 'foo'])
 
     it "should accept string as 'categories' value", ->
       body = """
@@ -403,6 +404,7 @@ describe "Processor", ->
 
           expect(foo.tag).to.be.undefined
           foo.tags.map((c) -> c.name)
+            .sort()
             .should.eql(['bar', 'foo'])
 
     it "should accept string as 'tags' value", ->

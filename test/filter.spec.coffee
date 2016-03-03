@@ -1,6 +1,7 @@
 Promise = require('bluebird')
 util = require('./util')
 {MakeFoo} = require('./mock')
+moment = require("moment")
 
 
 describe "Filter", ->
@@ -43,10 +44,11 @@ describe "Filter", ->
       filter = hexo.whatever.getFilter("foo")
       permalink_pattern = filter.opts.item_permalink
       filter.opts.item_permalink = ":source/:year/:month/:day/:title/"
-      hexo.model('Foo').insert(slug: "foo", date: new Date(1456605039835))
+      now = new Date()
+      hexo.model('Foo').insert(slug: "foo", date: now)
         .tap (foo) -> doc = foo
         .then (foo) ->
-          foo.path.should.eql('foos/2016/02/28/foo/')
+          foo.path.should.eql("foos/" + moment(now).format("YYYY/MM/DD") + "/foo/")
         .finally ->
           filter.opts.item_permalink = permalink_pattern
           doc.remove()
