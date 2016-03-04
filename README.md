@@ -54,8 +54,11 @@ Registering a model with name `"foo"` does the following:
 
 ```js
 hexo.extend.filter.register('process_project', (data, opts) => {
-  data.foo = "bar";
-  return data;
+  // Wrong: you should not mutate data directly
+  // data.foo = "bar";
+  // Return additional data
+  let delta = { foo: "bar"; }
+  return delta;
 })
 ```
 
@@ -66,3 +69,42 @@ hexo.extend.filter.register('process_project', (data, opts) => {
 ```js
 doSomethingWith(hexo.locals.projects);
 ```
+
+### 7. Generate index and item pages
+
+When calling `register`, a thrid `opts` argument can be passed along. Its default options are:
+
+```js
+const DEFAULT_OPTS = {
+  processor: {
+    item_name: ":title",
+    preserved_keys: [
+      'title',
+      'year',
+      'month',
+      'day',
+      'i_month',
+      'i_day'
+    ]
+  },
+  generator: {
+    index: {
+      enabled: true,
+      permalink: ":source/",
+      layout: ['archive', 'index'],
+      pagination: true,
+      perPage: 10
+    },
+    item: {
+      enabled: true,
+      layout: ['post']
+    }
+  },
+  filter: {
+    item_permalink: ":source/:title/",
+  }
+}
+```
+
+In this example, with default options, index pages `//yoursite.com/projects/index.html` with paging will be generated.
+As well as `//yousite.com/projects/project_title/` for each projects.
